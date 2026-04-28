@@ -1,0 +1,17 @@
+{
+  "name": "@enxoval/types",
+  "version": "1.0.0",
+  "description": "Runtime validation schemas, fn/asyncFn wrappers and branded UUID type",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["schema", "validation", "typescript"],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

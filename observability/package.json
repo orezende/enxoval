@@ -1,0 +1,20 @@
+{
+  "name": "@enxoval/observability",
+  "version": "1.0.0",
+  "description": "Pino logger wrapper with structured logging",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["pino", "logging", "observability", "typescript"],
+  "license": "MIT",
+  "dependencies": {
+    "pino": "^10.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

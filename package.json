@@ -1,0 +1,19 @@
+{
+  "name": "enxoval",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "types",
+    "db",
+    "http",
+    "messaging",
+    "observability",
+    "docker",
+    "testing",
+    "quality"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "publish:all": "npm run build --workspaces && npm publish --workspaces --access public"
+  }
+}

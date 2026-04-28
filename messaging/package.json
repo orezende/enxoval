@@ -1,0 +1,20 @@
+{
+  "name": "@enxoval/messaging",
+  "version": "1.0.0",
+  "description": "KafkaJS wrapper exposing publish, subscribe and ensureTopics",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["kafka", "messaging", "typescript"],
+  "license": "MIT",
+  "dependencies": {
+    "kafkajs": "^2.2.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

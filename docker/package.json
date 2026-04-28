@@ -1,0 +1,17 @@
+{
+  "name": "@enxoval/docker",
+  "version": "1.0.0",
+  "description": "Docker socket API client — start and stop containers without Docker CLI",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["docker", "containers", "typescript"],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

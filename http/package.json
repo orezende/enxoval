@@ -1,0 +1,20 @@
+{
+  "name": "@enxoval/http",
+  "version": "1.0.0",
+  "description": "Fastify wrapper exposing get, post, html, listen and inject helpers",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["fastify", "http", "typescript"],
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^5.8.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@enxoval/db",
+  "version": "1.0.0",
+  "description": "TypeORM wrapper with entity definition helpers and test data source",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["typeorm", "database", "typescript"],
+  "license": "MIT",
+  "dependencies": {
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.28",
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "better-sqlite3": "^12.9.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/pg": "^8.20.0"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@enxoval/quality",
+  "version": "1.0.0",
+  "description": "ESLint and Prettier config with Diplomat Architecture boundary rules",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["eslint", "prettier", "typescript", "linting"],
+  "license": "MIT",
+  "dependencies": {
+    "eslint": "^9.20.0",
+    "@typescript-eslint/eslint-plugin": "^8.30.0",
+    "@typescript-eslint/parser": "^8.30.0",
+    "eslint-plugin-boundaries": "^5.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.5.0",
+    "jiti": "^2.4.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
