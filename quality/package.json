@@ -1,9 +1,13 @@
 {
   "name": "@enxoval/quality",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "ESLint and Prettier config with Diplomat Architecture boundary rules",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./prettier": "./dist/src/prettier-config.js"
+  },
   "files": ["dist"],
   "scripts": {
     "build": "tsc",
