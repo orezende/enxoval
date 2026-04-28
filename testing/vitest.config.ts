@@ -1,7 +1,9 @@
 import { defineConfig } from 'vitest/config';
-import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
-const setupFile = join(__dirname, 'dist', 'setup.js');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const setupFile = join(__dirname, 'setup.js');
 
 function testAliasPlugin() {
   return {
