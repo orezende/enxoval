@@ -1,6 +1,6 @@
 {
   "name": "@enxoval/docker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Docker socket API client — start and stop containers without Docker CLI",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
