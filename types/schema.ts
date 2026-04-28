@@ -84,4 +84,13 @@ export const field = {
       return value;
     };
   },
+
+  boolean(): FieldParser<boolean> {
+    return (value, name) => {
+      if (typeof value !== 'boolean') {
+        throw new TypeError(`Field "${name}" must be a boolean, got ${typeof value}`);
+      }
+      return value;
+    };
+  },
 };

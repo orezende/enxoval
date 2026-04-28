@@ -6,4 +6,5 @@ export interface ColumnDef {
   name?: string;
   createDate?: boolean;
   nullable?: boolean;
+  default?: unknown;
 }

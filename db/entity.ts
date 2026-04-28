@@ -41,6 +41,9 @@ export const column = {
   varcharUnique(): ColumnDef {
     return { type: 'varchar', unique: true };
   },
+  boolean(defaultValue: boolean): ColumnDef {
+    return { type: 'boolean', default: defaultValue };
+  },
   createdAt(): ColumnDef {
     return { createDate: true };
   },
