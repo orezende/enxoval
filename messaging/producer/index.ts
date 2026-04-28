@@ -1,6 +1,6 @@
-import { logger } from '../../observability/logger';
+import { logger } from '@enxoval/observability';
 import { getKafkaTopic } from '../config';
-import { nextCid } from '../../observability/cid';
+import { nextCid } from '@enxoval/observability';
 import { kafka } from '../kafka';
 
 const producer = kafka.producer();

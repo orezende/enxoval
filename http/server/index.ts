@@ -1,7 +1,7 @@
 import Fastify, { type LightMyRequestResponse } from 'fastify';
-import { logger } from '../../observability/logger';
-import { AppError } from '../../types/errors/index';
-import { newCid, nextCid } from '../../observability/cid';
+import { logger } from '@enxoval/observability';
+import { AppError } from '@enxoval/types';
+import { newCid, nextCid } from '@enxoval/observability';
 
 const app = Fastify({ logger: false });
 

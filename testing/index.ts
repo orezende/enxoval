@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 
 export { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach } from 'vitest';
-export { createTestDataSource } from '../db';
+export { createTestDataSource } from '@enxoval/db';
 
 export const test = {
   fn: vi.fn,

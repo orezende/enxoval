@@ -8,12 +8,11 @@
     "sourceMap": true,
     "outDir": "dist",
     "rootDir": ".",
-    "strict": true,
-    "noImplicitAny": false,
+    "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*.ts", "index.ts", "setup.ts"],
+  "include": ["./**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

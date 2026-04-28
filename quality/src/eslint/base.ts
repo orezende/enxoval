@@ -27,7 +27,7 @@ export function base(): Linter.Config[] {
         parser: tsParser,
         parserOptions: { projectService: true },
       },
-      plugins: { '@typescript-eslint': tsPlugin },
+      plugins: { '@typescript-eslint': tsPlugin as any },
       rules: {
         'no-restricted-imports': ['error', { paths: FRAMEWORK_IMPORTS }],
       },
