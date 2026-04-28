@@ -27,6 +27,17 @@ jobs:
         run: npm run build --workspaces
 
       - name: Publish all packages
-        run: npm publish --workspaces --access public
+        run: |
+          for workspace in $(npm query .workspace --json | jq -r '.[].location'); do
+            pkg=$(node -p "require('./$workspace/package.json').name")
+            ver=$(node -p "require('./$workspace/package.json').version")
+            published=$(npm view "$pkg@$ver" version 2>/dev/null || echo "")
+            if [ -z "$published" ]; then
+              echo "Publishing $pkg@$ver"
+              npm publish "./$workspace" --access public
+            else
+              echo "Skipping $pkg@$ver (already published)"
+            fi
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
