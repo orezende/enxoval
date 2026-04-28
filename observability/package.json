@@ -1,6 +1,6 @@
 {
   "name": "@enxoval/observability",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Pino logger wrapper with structured logging",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
