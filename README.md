@@ -17,22 +17,133 @@ Shared libraries for dune-lab Node.js microservices. Published to npm under the 
 
 ## @enxoval/types
 
-Runtime validation schemas with TypeScript types. Use `createSchema` to define a wire type — it validates input and auto-generates the `contracts.json` used by kanly.
+Runtime validation and typed function wrappers. The core of dune-lab's type safety — every value that crosses a boundary is validated at runtime and typed at compile time.
+
+### createSchema + field
+
+Define a schema with `createSchema`. Call `.parse(raw)` to validate and get a fully typed value.
 
 ```ts
 import { createSchema, field } from '@enxoval/types';
 
 const CreateUserWireIn = createSchema({
-  id: field.uuid(),
   name: field.string(),
+  email: field.string(),
   role: field.literal('student', 'admin'),
 });
 
-// parse and validate input
-const user = CreateUserWireIn.parse(req.body);
+const input = CreateUserWireIn.parse(req.body);
+// input is typed: { name: string; email: string; role: 'student' | 'admin' }
 ```
 
 Available field types: `field.uuid()`, `field.string()`, `field.number()`, `field.boolean()`, `field.date()`, `field.literal(...values)`.
+
+---
+
+### fn and asyncFn
+
+Schema-bounded function wrappers. They validate input before execution and output before returning — catching both bad incoming data and programmer mistakes in one place.
+
+**`fn`** — synchronous transform between two schemas:
+
+```ts
+import { fn } from '@enxoval/types';
+
+// adapter: DB row → domain model
+export const fromDbWire = fn(UserDbWire, User, (wire) => ({
+  id: asUUID(wire.id),
+  name: wire.name,
+  email: wire.email,
+  emailVerified: wire.email_verified,
+  role: wire.role as Role,
+  createdAt: wire.created_at,
+}));
+
+// adapter: domain model → HTTP wire out
+export const toWireOut = fn(User, UserWireOut, (u) => ({
+  id: u.id,
+  name: u.name,
+  email: u.email,
+  role: u.role,
+  createdAt: u.createdAt.toISOString(),
+}));
+```
+
+**`asyncFn` with output schema** — for controllers that return a value:
+
+```ts
+import { asyncFn } from '@enxoval/types';
+
+export const createUser = asyncFn(CreateUserWireIn, User, async (input) => {
+  const existing = await userDb.findByEmail(input.email);
+  if (existing) return existing;
+
+  const passwordHash = await hashPassword(input.password);
+  return userDb.insert(buildUser({ ...input, passwordHash }));
+});
+```
+
+**`asyncFn` without output schema** — for Kafka consumers and fire-and-forget side effects:
+
+```ts
+export const journeyStarted = asyncFn(Event, async (event) => {
+  await journeyDb.updateStep({ id: event.journeyId, currentStep: 'DIAGNOSTIC_TRIGGERED' });
+  await publish('diagnosticTriggered', event);
+});
+```
+
+**Why this matters:**
+
+| Without fn/asyncFn | With fn/asyncFn |
+|--------------------|-----------------|
+| Manual `.parse()` scattered across every handler | Single declaration — parse happens automatically |
+| TypeScript types must be repeated manually | Types inferred from schemas — no duplication |
+| Output shape only caught by TypeScript | Output validated at runtime — catches shape mismatches |
+| `unknown` leaks into business logic | Function body always receives a typed, validated value |
+
+The pattern covers every layer: adapters validate DB ↔ model transforms, controllers validate wire_in ↔ model, Kafka consumers validate message payloads. No raw `unknown` ever reaches business logic.
+
+---
+
+### UUID
+
+Branded `UUID` type that prevents plain strings from being passed where a UUID is expected.
+
+```ts
+import { UUID, toUUID, asUUID, isUUID } from '@enxoval/types';
+
+// throws if not a valid UUID format
+const id: UUID = toUUID(req.params.id);
+
+// cast without validation (use when value is already trusted)
+const id: UUID = asUUID(row.id);
+
+// type guard
+if (isUUID(value)) { ... }
+```
+
+---
+
+### Error classes
+
+Typed errors that map to HTTP status codes in `@enxoval/http`.
+
+```ts
+import { NotFoundError, ConflictError, UnauthorizedError } from '@enxoval/types';
+
+throw new NotFoundError('User not found');
+throw new ConflictError('Email already registered');
+throw new UnauthorizedError('Invalid credentials');
+```
+
+| Class | HTTP status |
+|-------|------------|
+| `AppError` | 500 (base class) |
+| `NotFoundError` | 404 |
+| `ConflictError` | 409 |
+| `ValidationError` | 400 |
+| `UnprocessableError` | 422 |
+| `UnauthorizedError` | 401 |
 
 ---
 
