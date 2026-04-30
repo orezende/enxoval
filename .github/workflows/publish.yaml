@@ -110,16 +110,6 @@ jobs:
             --head $BRANCH \
             --base main \
             --title "chore: bump @enxoval/* — ${{ github.ref_name }}" \
-            --body "$(cat <<'EOF'
-## Summary
-
-- Automated bump of @enxoval/* packages after release ${{ github.ref_name }}
-- Only packages already listed as dependencies were updated
-
-## Test plan
-
-- [ ] CI passes
-EOF
-)"
+            --body "Automated bump of @enxoval/* packages after release ${{ github.ref_name }}. Only packages already listed as dependencies were updated."
         env:
           GH_TOKEN: ${{ secrets.DUNE_LAB_TOKEN }}
