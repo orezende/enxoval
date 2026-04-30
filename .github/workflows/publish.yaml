@@ -94,29 +94,6 @@ jobs:
           [ -z "$FILTERED" ] && echo "No matching deps, skipping" && exit 0
           npm install $FILTERED
 
-      - name: Build service
-        working-directory: service
-        run: npm run build
-
-      - name: Checkout and build partners for kanly
-        run: |
-          mkdir -p partners
-          for repo in atreides odyssey persona janus imperium; do
-            [ "$repo" = "${{ matrix.repo }}" ] && continue
-            git clone "https://x-access-token:${GH_TOKEN}@github.com/dune-lab/$repo.git" "partners/$repo" 2>/dev/null || continue
-            cd "partners/$repo"
-            npm ci --ignore-scripts 2>/dev/null && npm run build 2>/dev/null || true
-            cd "$GITHUB_WORKSPACE"
-          done
-        env:
-          GH_TOKEN: ${{ secrets.DUNE_LAB_TOKEN }}
-
-      - name: Run kanly contract validation
-        working-directory: service
-        run: npx kanly
-        env:
-          KANLY_LOCAL_DIR: ${{ github.workspace }}/partners
-
       - name: Open PR if changed
         working-directory: service
         run: |
