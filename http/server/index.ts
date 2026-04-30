@@ -119,10 +119,12 @@ export async function inject(options: {
   method: string;
   url: string;
   body?: unknown;
+  headers?: Record<string, string>;
 }): Promise<LightMyRequestResponse> {
   return app.inject({
     method: options.method as 'POST' | 'GET' | 'PUT' | 'PATCH' | 'DELETE',
     url: options.url,
     payload: options.body as string | object | undefined,
+    headers: options.headers,
   }) as Promise<LightMyRequestResponse>;
 }
