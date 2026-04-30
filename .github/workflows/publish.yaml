@@ -69,7 +69,7 @@ jobs:
         working-directory: enxoval
         run: |
           UPDATES=""
-          for workspace in $(npm query .workspace --json | jq -r '.[].location'); do
+          for workspace in $(node -p "require('./package.json').workspaces.join(' ')"); do
             pkg=$(node -p "require('./$workspace/package.json').name")
             ver=$(node -p "require('./$workspace/package.json').version")
             published=$(npm view "$pkg@$ver" version 2>/dev/null || echo "")
