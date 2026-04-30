@@ -47,6 +47,7 @@ jobs:
     needs: publish
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         repo: [atreides, odyssey, persona, janus, imperium]
     steps:
@@ -93,6 +94,29 @@ jobs:
           [ -z "$FILTERED" ] && echo "No matching deps, skipping" && exit 0
           npm install $FILTERED
 
+      - name: Build service
+        working-directory: service
+        run: npm run build
+
+      - name: Checkout and build partners for kanly
+        run: |
+          mkdir -p partners
+          for repo in atreides odyssey persona janus imperium; do
+            [ "$repo" = "${{ matrix.repo }}" ] && continue
+            git clone "https://x-access-token:${GH_TOKEN}@github.com/dune-lab/$repo.git" "partners/$repo" 2>/dev/null || continue
+            cd "partners/$repo"
+            npm ci --ignore-scripts 2>/dev/null && npm run build 2>/dev/null || true
+            cd "$GITHUB_WORKSPACE"
+          done
+        env:
+          GH_TOKEN: ${{ secrets.DUNE_LAB_TOKEN }}
+
+      - name: Run kanly contract validation
+        working-directory: service
+        run: npx kanly
+        env:
+          KANLY_LOCAL_DIR: ${{ github.workspace }}/partners
+
       - name: Open PR if changed
         working-directory: service
         run: |
@@ -104,13 +128,13 @@ jobs:
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/dune-lab/${{ matrix.repo }}.git"
           git checkout -b $BRANCH
           git add package.json package-lock.json
-          git commit -m "chore: bump @enxoval/* packages — ${{ github.ref_name }}"
+          git commit -m "chore: bump @enxoval/* to ${{ github.ref_name }}"
           git push origin $BRANCH
           gh pr create \
             --repo dune-lab/${{ matrix.repo }} \
             --head $BRANCH \
             --base main \
-            --title "chore: bump @enxoval/* — ${{ github.ref_name }}" \
+            --title "chore: bump @enxoval/* to ${{ github.ref_name }}" \
             --body "Automated bump of @enxoval/* packages after release ${{ github.ref_name }}. Only packages already listed as dependencies were updated."
         env:
           GH_TOKEN: ${{ secrets.DUNE_LAB_TOKEN }}

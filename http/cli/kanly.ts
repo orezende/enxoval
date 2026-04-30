@@ -13,6 +13,7 @@ type Contracts = {
 
 const cwd = process.cwd();
 const port = process.env.PORT ?? '3000';
+const localDir = process.env.KANLY_LOCAL_DIR;
 
 const SERVICE_URLS: Record<string, string | undefined> = {
   atreides: process.env.ATREIDES_URL,
@@ -26,6 +27,13 @@ async function fetchContracts(url: string): Promise<Contracts> {
   const res = await fetch(`${url}/contracts`);
   if (!res.ok) throw new Error(`GET ${url}/contracts returned ${res.status}`);
   return res.json() as Promise<Contracts>;
+}
+
+function loadLocalPartnerContracts(partner: string): Contracts | null {
+  if (!localDir) return null;
+  const path = join(localDir, partner, 'dist', 'contracts.json');
+  if (!existsSync(path)) return null;
+  return JSON.parse(readFileSync(path, 'utf-8')) as Contracts;
 }
 
 function loadLocalContracts(): Contracts {
@@ -83,6 +91,12 @@ function validate(
 }
 
 async function run(): Promise<void> {
+  const localPath = resolve(cwd, 'dist', 'contracts.json');
+  if (!existsSync(localPath)) {
+    console.log('kanly: no contracts.json found — skipping');
+    process.exit(0);
+  }
+
   const local = loadLocalContracts();
   const httpPartners = discoverHttpPartners();
   const kafkaTopics = discoverKafkaTopics();
@@ -100,6 +114,12 @@ async function run(): Promise<void> {
   const allErrors: string[] = [];
 
   for (const partner of httpPartners) {
+    const local_partner = loadLocalPartnerContracts(partner);
+    if (local_partner) {
+      const errors = validate(local, local_partner, partner);
+      allErrors.push(...errors);
+      continue;
+    }
     const url = SERVICE_URLS[partner];
     if (!url) {
       console.warn(`kanly: no URL configured for "${partner}" — skipping`);
