@@ -11,5 +11,5 @@ if [ -z "$TOKEN" ]; then
   exit 1
 fi
 
-gh secret set DUNE_LAB_TOKEN --repo orezende/enxoval --body "$TOKEN"
+gh secret set DUNE_LAB_TOKEN --repo dune-lab/enxoval --body "$TOKEN"
 echo "Done. DUNE_LAB_TOKEN set successfully."
