@@ -1,5 +1,14 @@
 import type { Schema } from './schema';
 
+export function nullable<T>(schema: Schema<T>): Schema<T | null> {
+  return {
+    parse(data: unknown): T | null {
+      if (data === null || data === undefined) return null;
+      return schema.parse(data);
+    },
+  };
+}
+
 export function fn<I, O>(
   inputSchema: Schema<I>,
   outputSchema: Schema<O>,

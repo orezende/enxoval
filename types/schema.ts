@@ -3,7 +3,10 @@ import { UUID_REGEX } from './uuid';
 
 export type FieldDescriptor =
   | { type: 'string' | 'uuid' | 'boolean' | 'number' | 'date' }
-  | { type: 'literal'; values: string[] };
+  | { type: 'literal'; values: string[] }
+  | { type: 'nullable'; inner: FieldDescriptor }
+  | { type: 'nested' }
+  | { type: 'array' };
 
 export type FieldParser<T> = {
   (value: unknown, field: string): T;
@@ -121,5 +124,39 @@ export const field = {
       }
       return value;
     }, 'boolean');
+  },
+
+  nullable<T>(parser: FieldParser<T>): FieldParser<T | null> {
+    return makeParser((value, name) => {
+      if (value === null || value === undefined) return null;
+      return parser(value, name);
+    }, 'nullable');
+  },
+
+  nested<T>(schema: Schema<T>): FieldParser<T> {
+    return makeParser((value, name) => {
+      try {
+        return schema.parse(value);
+      } catch (err) {
+        throw new TypeError(`Field "${name}": ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }, 'nested');
+  },
+
+  array<T>(schema: Schema<T>): Schema<T[]> {
+    return {
+      parse(data: unknown): T[] {
+        if (!Array.isArray(data)) {
+          throw new TypeError(`Expected array, got ${typeof data}`);
+        }
+        return data.map((item, i) => {
+          try {
+            return schema.parse(item);
+          } catch (err) {
+            throw new TypeError(`Item [${i}]: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        });
+      },
+    };
   },
 };
