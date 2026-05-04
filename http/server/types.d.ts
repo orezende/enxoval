@@ -3,5 +3,6 @@ import 'fastify';
 declare module 'fastify' {
   interface FastifyRequest {
     cid: string;
+    startTime: number;
   }
 }

@@ -11,18 +11,27 @@ const app = Fastify({ logger: false });
 app.register(cors, { origin: true });
 
 app.decorateRequest('cid', '');
+app.decorateRequest('startTime', 0);
+
+const SILENT_PATHS = new Set(['/health', '/contracts']);
 
 app.addHook('onRequest', (request, reply, done) => {
   const incoming = request.headers['x-cid'] as string | undefined;
   const cid = incoming ? nextCid(incoming) : newCid();
   request.cid = cid;
+  request.startTime = Date.now();
   reply.header('x-cid', cid);
-  logger.info({ cid, method: request.method, url: request.url }, 'http-server: request received');
+  if (!SILENT_PATHS.has(request.url) && request.method !== 'OPTIONS') {
+    logger.info({ cid, method: request.method, url: request.url }, 'http-server: request received');
+  }
   done();
 });
 
 app.addHook('onResponse', (request, reply, done) => {
-  logger.info({ cid: request.cid, method: request.method, url: request.url, status: reply.statusCode }, 'http-server: response sent');
+  if (!SILENT_PATHS.has(request.url) && request.method !== 'OPTIONS') {
+    const durationMs = Date.now() - request.startTime;
+    logger.info({ cid: request.cid, method: request.method, url: request.url, status: reply.statusCode, durationMs }, 'http-server: response sent');
+  }
   done();
 });
 
