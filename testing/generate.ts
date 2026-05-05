@@ -66,7 +66,7 @@ function generateFromParser(parser: FieldParser<unknown>): unknown {
       return generate(parser._schema!);
 
     default:
-      return null;
+      throw new Error(`generate: unsupported field type "${parser._type}"`);
   }
 }
 
