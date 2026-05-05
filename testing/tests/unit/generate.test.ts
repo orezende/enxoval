@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createSchema, field } from '../../../types/schema';
+import { createSchema, field } from '@enxoval/types';
 import { generate } from '../../generate';
 
 const UserSchema = createSchema({
@@ -36,7 +36,7 @@ describe('generate', () => {
     const results = Array.from({ length: 20 }, () => generate(Schema));
     const hasNull = results.some((r) => r.value === null);
     const hasValue = results.some((r) => r.value !== null);
-    expect(hasNull || hasValue).toBe(true);
+    expect(hasNull && hasValue).toBe(true);
   });
 
   it('nested schema generates recursively', () => {
