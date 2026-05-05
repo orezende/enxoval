@@ -12,6 +12,8 @@ export type FieldParser<T> = {
   (value: unknown, field: string): T;
   _type: string;
   _values?: string[];
+  _schema?: Schema<unknown>;
+  _inner?: FieldParser<unknown>;
 };
 
 type InferFields<F extends Record<string, FieldParser<unknown>>> = {
@@ -21,6 +23,7 @@ type InferFields<F extends Record<string, FieldParser<unknown>>> = {
 export type Schema<T> = {
   parse(data: unknown): T;
   describe?(): Record<string, FieldDescriptor>;
+  _fields?: Record<string, FieldParser<unknown>>;
 };
 
 function makeParser<T>(fn: (value: unknown, field: string) => T, type: string, values?: string[]): FieldParser<T> {
@@ -34,6 +37,8 @@ export function createSchema<F extends Record<string, FieldParser<unknown>>>(
   fields: F,
 ): Schema<InferFields<F>> {
   return {
+    _fields: fields as Record<string, FieldParser<unknown>>,
+
     parse(data: unknown): InferFields<F> {
       if (typeof data !== 'object' || data === null) {
         throw new TypeError(`Expected object, got ${typeof data}`);
@@ -127,20 +132,24 @@ export const field = {
   },
 
   nullable<T>(parser: FieldParser<T>): FieldParser<T | null> {
-    return makeParser((value, name) => {
+    const wrapped = makeParser((value, name) => {
       if (value === null || value === undefined) return null;
       return parser(value, name);
     }, 'nullable');
+    wrapped._inner = parser as FieldParser<unknown>;
+    return wrapped;
   },
 
   nested<T>(schema: Schema<T>): FieldParser<T> {
-    return makeParser((value, name) => {
+    const nested = makeParser((value, name) => {
       try {
         return schema.parse(value);
       } catch (err) {
         throw new TypeError(`Field "${name}": ${err instanceof Error ? err.message : String(err)}`);
       }
     }, 'nested');
+    nested._schema = schema as Schema<unknown>;
+    return nested;
   },
 
   array<T>(schema: Schema<T>): Schema<T[]> {
