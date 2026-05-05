@@ -9,7 +9,7 @@
 
 import { it } from 'vitest';
 import type { Schema } from '@enxoval/types';
-import { generate } from './generate';
+import { generate } from './generate.js';
 
 type TestFn<T> = (input: T) => void | Promise<void>;
 

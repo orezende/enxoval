@@ -9,3 +9,6 @@ export const test = {
   spy: vi.spyOn,
   clearAll: vi.clearAllMocks,
 };
+
+export { generate } from './generate.js';
+export { itCases } from './itCases.js';

@@ -1,6 +1,6 @@
 {
   "name": "@enxoval/testing",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "description": "Vitest re-exports, vitest config and SQLite in-memory test data source for TypeORM",
   "main": "dist/index.js",
@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -30,6 +31,7 @@
     "reflect-metadata": "^0.2.2"
   },
   "dependencies": {
-    "@enxoval/db": "^1.0.0"
+    "@enxoval/db": "^1.0.0",
+    "@enxoval/types": "^1.0.25"
   }
 }
