@@ -140,3 +140,39 @@ export async function inject(options: {
     headers: options.headers,
   }) as Promise<LightMyRequestResponse>;
 }
+
+export function sseRoute<TParams, TQuery = Record<string, string>>(
+  path: string,
+  handler: (
+    params: TParams,
+    query: TQuery,
+    send: (data: object) => void,
+    signal: AbortSignal,
+  ) => Promise<void>,
+): void {
+  app.get<{ Params: TParams; Querystring: TQuery }>(path, async (request, reply) => {
+    reply.hijack();
+    reply.raw.setHeader('Content-Type', 'text/event-stream');
+    reply.raw.setHeader('Cache-Control', 'no-cache');
+    reply.raw.setHeader('Connection', 'keep-alive');
+    reply.raw.setHeader('Access-Control-Allow-Origin', '*');
+    reply.raw.flushHeaders();
+
+    const controller = new AbortController();
+    const onClose = () => controller.abort();
+    request.raw.on('close', onClose);
+
+    const send = (data: object) => {
+      if (!reply.raw.destroyed) {
+        reply.raw.write(`data: ${JSON.stringify(data)}\n\n`);
+      }
+    };
+
+    try {
+      await handler(request.params as TParams, request.query as TQuery, send, controller.signal);
+    } finally {
+      request.raw.off('close', onClose);
+      if (!reply.raw.destroyed) reply.raw.end();
+    }
+  });
+}
