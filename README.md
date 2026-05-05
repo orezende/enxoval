@@ -6,12 +6,12 @@ Shared libraries for dune-lab Node.js microservices. Published to npm under the 
 
 | Package | Version | Description |
 |---------|---------|-------------|
-| [`@enxoval/types`](#enxovaltypes) | 1.0.6 | Runtime validation schemas, branded UUID, fn/asyncFn wrappers |
-| [`@enxoval/http`](#enxovalhttp) | 1.0.10 | Fastify wrapper, route helpers, kanly contract CLI |
+| [`@enxoval/types`](#enxovaltypes) | 1.0.24 | Runtime validation schemas, branded UUID, fn/asyncFn wrappers |
+| [`@enxoval/http`](#enxovalhttp) | 1.0.26 | Fastify wrapper, route helpers, kanly contract CLI |
 | [`@enxoval/db`](#enxovaldb) | 1.0.3 | TypeORM wrapper, migration runner CLI |
 | [`@enxoval/messaging`](#enxovalmessaging) | 1.0.2 | Kafka producer/consumer, topic setup |
-| [`@enxoval/auth`](#enxovalauth) | 1.0.0 | JWT middleware, sign and verify helpers |
-| [`@enxoval/observability`](#enxovalobservability) | 1.0.1 | Structured logger (pino) |
+| [`@enxoval/auth`](#enxovalauth) | 1.0.2 | JWT middleware, sign and verify helpers |
+| [`@enxoval/observability`](#enxovalobservability) | 1.0.2 | Structured logger (pino) |
 
 ---
 
@@ -263,19 +263,73 @@ Log level is controlled by `LOG_LEVEL` env var (default: `info`).
 
 ---
 
-## Publishing
+## Publishing & Bump Flow
 
-Packages are published to npm automatically when a tag `v*` is pushed:
+Packages are published to npm automatically when a `v*` tag is pushed. The same pipeline opens bump PRs in every consumer repo.
+
+### How to release
 
 ```bash
-git tag v1.0.17
-git push origin v1.0.17
+# 1. Bump the version in the package(s) that changed
+#    Edit e.g. types/package.json: "version": "1.0.25"
+
+# 2. Commit and tag
+git add types/package.json
+git commit -m "feat(types): add field.nullable helper"
+git tag v1.0.25
+git push origin main
+git push origin v1.0.25
 ```
 
-The `publish` workflow:
-1. Builds all packages
-2. Publishes any version not yet on npm
-3. Opens bump PRs in all dune-lab service repos updating `@enxoval/*` dependencies
+That's all. The rest is automated.
+
+### What the pipeline does
+
+```
+push tag v1.0.25
+    │
+    ▼
+[job: publish]
+  Build all packages in workspace order
+  For each package: publish to npm if version not already published
+  (safe to re-tag — already-published versions are skipped)
+    │
+    ▼
+[job: discover]
+  Scan all dune-lab/* repos via GitHub API
+  Read each repo's package.json
+  Keep repos that have any @enxoval/* in dependencies or devDependencies
+  Output: list of repo names (e.g. ["odyssey","imperium","atreides","persona","janus"])
+    │
+    ▼
+[job: bump]  ← matrix: one job per repo, runs in parallel
+  For each repo:
+  ├── Checkout enxoval + service repo side-by-side
+  ├── npm install @enxoval/types@1.0.25 ... (only packages already listed as deps)
+  ├── git checkout -b chore/bump-enxoval-v1.0.25
+  ├── git commit package.json package-lock.json
+  └── gh pr create → "chore: bump @enxoval/* to v1.0.25"
+```
+
+### Result
+
+Within minutes of the tag push, each service repo has a ready-to-merge PR:
+
+| Repo | Branch |
+|------|--------|
+| dune-lab/odyssey | `chore/bump-enxoval-v1.0.25` |
+| dune-lab/imperium | `chore/bump-enxoval-v1.0.25` |
+| dune-lab/atreides | `chore/bump-enxoval-v1.0.25` |
+| dune-lab/persona | `chore/bump-enxoval-v1.0.25` |
+| dune-lab/janus | `chore/bump-enxoval-v1.0.25` |
+
+### Key behaviors
+
+- **Selective bump**: only packages already listed in the repo's `dependencies` or `devDependencies` are updated — a repo that doesn't use `@enxoval/messaging` won't have it added
+- **lock file always updated**: `package-lock.json` is updated alongside `package.json` — `npm ci` in CI requires them in sync
+- **Idempotent publish**: if a version was already published (e.g. from a previous run), the publish step skips it silently — no failure
+- **Tag version ≠ package version**: the git tag label is used only for branch/PR naming; npm publish uses each `package.json`'s own `version` field
+- **Requires `DUNE_LAB_TOKEN`**: a GitHub PAT with `repo` scope, stored as a secret in the enxoval repo, used to push branches and open PRs across the org
 
 ---
 
