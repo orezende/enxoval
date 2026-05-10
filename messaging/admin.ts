@@ -8,7 +8,10 @@ interface ServiceConfig {
 }
 
 export async function ensureTopics(): Promise<void> {
-  const configPath = resolve(process.cwd(), 'student-journey.json');
+  const configFileName = process.env.SERVICE_NAME
+    ? `${process.env.SERVICE_NAME}.json`
+    : 'student-journey.json';
+  const configPath = resolve(process.cwd(), configFileName);
   if (!existsSync(configPath)) return;
 
   const config: ServiceConfig = JSON.parse(readFileSync(configPath, 'utf-8'));
