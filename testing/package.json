@@ -1,6 +1,6 @@
 {
   "name": "@enxoval/testing",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "description": "Vitest re-exports, vitest config and SQLite in-memory test data source for TypeORM",
   "main": "dist/index.js",

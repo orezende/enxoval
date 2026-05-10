@@ -88,6 +88,8 @@ export function generate<T>(schema: Schema<T>, overrides?: Partial<Record<string
   const raw: Record<string, unknown> = {};
 
   for (const [key, parser] of Object.entries(fields)) {
+    // Skip auto-generation for fields that are explicitly overridden
+    if (overrides && Object.prototype.hasOwnProperty.call(overrides, key)) continue;
     raw[key] = generateFromParser(parser);
   }
 
