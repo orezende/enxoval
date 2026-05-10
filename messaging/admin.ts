@@ -12,18 +12,22 @@ export async function ensureTopics(): Promise<void> {
     ? `${process.env.SERVICE_NAME}.json`
     : 'student-journey.json';
   const configPath = resolve(process.cwd(), configFileName);
-  if (!existsSync(configPath)) return;
 
-  const config: ServiceConfig = JSON.parse(readFileSync(configPath, 'utf-8'));
-  const kafka_topics = config.kafka_topics ?? {};
+  const configTopics: string[] = [];
+  if (existsSync(configPath)) {
+    const config: ServiceConfig = JSON.parse(readFileSync(configPath, 'utf-8'));
+    configTopics.push(...Object.values(config.kafka_topics ?? {}).map(({ topic }) => topic));
+  }
+
+  const dlqTopic = process.env.SERVICE_NAME ? `${process.env.SERVICE_NAME}-dlq` : null;
+  const allTopics = dlqTopic ? [...configTopics, dlqTopic] : configTopics;
+  if (allTopics.length === 0) return;
 
   const admin = kafka.admin();
   await admin.connect();
 
   const existing = new Set(await admin.listTopics());
-  const toCreate = Object.values(kafka_topics)
-    .map(({ topic }) => topic)
-    .filter((topic) => !existing.has(topic));
+  const toCreate = allTopics.filter((topic) => !existing.has(topic));
 
   if (toCreate.length > 0) {
     await admin.createTopics({
