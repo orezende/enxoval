@@ -7,7 +7,6 @@ import { publishRaw } from '../producer/index';
 export type MessageHandler<T = unknown> = (message: T) => Promise<void> | void;
 
 const MAX_RETRIES = 3;
-const DLQ_TOPIC = 'student-journey-dlq';
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -23,12 +22,14 @@ async function withRetry(fn: () => Promise<void>, attemptsLeft: number, delayMs:
   }
 }
 
-export function subscribe<T extends Record<string, unknown>>(
+export function consume<T extends Record<string, unknown>>(
   name: string,
   handler: MessageHandler<T>,
 ): void {
   const topic = getKafkaTopic(name);
-  const consumer = kafka.consumer({ groupId: `student-journey-${name}` });
+  const serviceName = process.env.SERVICE_NAME || name;
+  const dlqTopic = `${serviceName}-dlq`;
+  const consumer = kafka.consumer({ groupId: `${serviceName}-${name}` });
 
   consumer
     .connect()
@@ -48,7 +49,7 @@ export function subscribe<T extends Record<string, unknown>>(
             await withRetry(() => Promise.resolve(handler(payload)), MAX_RETRIES, 500);
           } catch (err) {
             logger.error({ err, cid, topic, name, payload }, 'consumer: message failed after retries, sending to DLQ');
-            await publishRaw(DLQ_TOPIC, {
+            await publishRaw(dlqTopic, {
               originalTopic: topic,
               name,
               payload,
