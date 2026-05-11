@@ -1,9 +1,12 @@
 {
   "name": "@enxoval/messaging",
-  "version": "1.0.4",
-  "description": "KafkaJS wrapper exposing publish, consume and ensureTopics",
+  "version": "1.0.5",
+  "description": "KafkaJS wrapper exposing publish, consume, ensureTopics and the enxoval CLI",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "enxoval": "dist/cli/index.js"
+  },
   "files": [
     "dist"
   ],
