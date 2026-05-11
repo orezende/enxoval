@@ -1,5 +1,5 @@
 import { verify, sign, decode } from 'jsonwebtoken';
-import { addPreHandler } from '@enxoval/http';
+import { addPreHandler, tokenStorage } from '@enxoval/http';
 import { UnauthorizedError } from '@enxoval/types';
 import { store } from './context';
 
@@ -34,6 +34,18 @@ export function setupAuth(options?: { exclude?: string[] }): void {
       return;
     }
 
+    // Accept service-to-service calls authenticated by shared JWT_SECRET
+    const serviceToken = request.headers['x-service-token'] as string | undefined;
+    if (serviceToken) {
+      if (serviceToken === process.env.JWT_SECRET) {
+        store.enterWith(null);
+        done();
+        return;
+      }
+      done(new UnauthorizedError('Unauthorized'));
+      return;
+    }
+
     const authHeader = request.headers['authorization'];
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       done(new UnauthorizedError('Unauthorized'));
@@ -44,6 +56,7 @@ export function setupAuth(options?: { exclude?: string[] }): void {
     try {
       const payload = verify(token, process.env.JWT_SECRET!) as { userId: string; role: string };
       store.enterWith({ userId: payload.userId, role: payload.role, token });
+      tokenStorage.enterWith(token);
       done();
     } catch {
       done(new UnauthorizedError('Unauthorized'));
