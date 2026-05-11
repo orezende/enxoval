@@ -216,7 +216,9 @@ describe('defineHttpAliases + call', () => {
     const { createSchema, field } = await import('@enxoval/types');
     const UserData = createSchema({ id: field.string() });
 
-    expect(() => defineHttpAliases({ getUser: UserData })).toThrow('getUser');
+    // Config is read lazily on first call(), not at defineHttpAliases() time
+    const { call } = defineHttpAliases({ getUser: UserData });
+    await expect(call('getUser')).rejects.toThrow('getUser');
   });
 
   it('throws if base URL env var is missing', async () => {

@@ -3,3 +3,4 @@ export { renderDashboard } from './dashboard';
 export { renderApiDocs } from './docs';
 export { renderOverview } from './overview';
 export type { Service } from './dashboard';
+export { tokenStorage, defineHttpAliases } from './client/index';

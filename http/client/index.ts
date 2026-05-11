@@ -168,27 +168,38 @@ async function executeCall(
  * Reads ${SERVICE_NAME}.json from cwd, validates that every alias in schemas
  * exists in the JSON's http section, and returns a typed { call } function.
  *
+ * Config is read lazily on the first call() invocation, so importing this
+ * module has no side effects (safe for test environments without SERVICE_NAME).
+ * Validation (alias exists in JSON) runs on first call and the config is
+ * cached for subsequent calls.
+ *
  * @param schemas - Map of alias → schema (any object with a parse() method)
  * @returns       - { call } where call(alias, opts?) returns a typed Promise
- * @throws        - If any alias is missing from the JSON http section
  */
 export function defineHttpAliases<T extends Record<string, AnySchema>>(
   schemas: T,
 ): {
   call: <K extends keyof T & string>(alias: K, opts?: CallOpts) => Promise<InferOutput<T[K]>>;
 } {
-  const config = readHttpConfig();
+  let config: HttpConfig | null = null;
 
-  for (const alias of Object.keys(schemas)) {
-    if (!config[alias]) {
-      throw new Error(
-        `defineHttpAliases: alias "${alias}" is not declared in ${process.env.SERVICE_NAME}.json http section`,
-      );
+  const getConfig = (): HttpConfig => {
+    if (config) return config;
+    config = readHttpConfig();
+    for (const alias of Object.keys(schemas)) {
+      if (!config[alias]) {
+        throw new Error(
+          `defineHttpAliases: alias "${alias}" is not declared in ${process.env.SERVICE_NAME}.json http section`,
+        );
+      }
     }
-  }
+    return config;
+  };
 
   return {
-    call: <K extends keyof T & string>(alias: K, opts?: CallOpts) =>
-      executeCall(alias, opts, config, schemas as Record<string, AnySchema>) as Promise<InferOutput<T[K]>>,
+    call: async <K extends keyof T & string>(alias: K, opts?: CallOpts): Promise<InferOutput<T[K]>> => {
+      const cfg = getConfig();
+      return executeCall(alias, opts, cfg, schemas as Record<string, AnySchema>) as Promise<InferOutput<T[K]>>;
+    },
   };
 }
