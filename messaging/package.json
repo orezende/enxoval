@@ -12,8 +12,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build",
-    "create-topic": "node dist/cli/index.js create-topic"
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "kafka",
