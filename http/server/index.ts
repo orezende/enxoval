@@ -6,8 +6,9 @@
  * register routes on a shared Fastify instance and track them in
  * `registeredRoutes` for introspection via GET /routes.
  *
- * Internal framework routes (/health, /contracts, /routes) are excluded from
+ * Internal framework routes (/contracts, /routes) are excluded from
  * the registry and silenced in request/response logs.
+ * Note: /health must be registered by each consumer service individually.
  */
 import Fastify, { type FastifyRequest, type FastifyReply, type HookHandlerDoneFunction, type LightMyRequestResponse } from 'fastify';
 import cors from '@fastify/cors';
@@ -25,7 +26,7 @@ app.decorateRequest('cid', '');
 app.decorateRequest('startTime', 0);
 
 /** Paths that are suppressed from request/response logs. */
-const SILENT_PATHS = new Set(['/health', '/contracts', '/routes']);
+const SILENT_PATHS = new Set(['/contracts', '/routes']);
 
 /**
  * Registry of all routes registered via the exported helpers.
@@ -182,8 +183,6 @@ export function del(path: string, handler: () => Promise<unknown>): void {
 }
 
 // Internal framework routes — not tracked in registeredRoutes
-
-app.get('/health', async () => ({ status: 'ok' }));
 
 app.get('/contracts', async () => {
   const contractsPath = resolve(process.cwd(), 'dist', 'contracts.json');
