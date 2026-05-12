@@ -4,10 +4,14 @@ export const HARKONNEN_STATUSES = ['pending', 'reprocessed', 'dismissed'] as con
 
 export const HarkonnenMessage = createSchema({
   id: field.uuid(),
+  cid: field.nullable(field.string()),
+  serviceName: field.string(),
   originalTopic: field.string(),
   name: field.string(),
   payload: field.string(),
   error: field.string(),
+  retryCount: field.number(),
+  reprocessCount: field.number(),
   failedAt: field.string(),
   status: field.literal(...HARKONNEN_STATUSES),
   reprocessedAt: field.nullable(field.string()),

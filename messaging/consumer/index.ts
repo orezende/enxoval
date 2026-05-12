@@ -45,9 +45,14 @@ export function consume<T extends Record<string, unknown>>(
           const cid = incoming ? nextCid(incoming) : undefined;
           logger.info({ cid, topic, name, eventId: (payload as { eventId?: string }).eventId }, 'consumer: message received');
 
+          let retryCount = 0;
           try {
-            await withRetry(() => Promise.resolve(handler(payload)), MAX_RETRIES, 500);
+            await withRetry(async () => {
+              retryCount++;
+              await handler(payload);
+            }, MAX_RETRIES, 500);
           } catch (err) {
+            const cid = (payload as { cid?: string }).cid;
             logger.error({ err, cid, topic, name, payload }, 'consumer: message failed after retries, sending to DLQ');
             await publishRaw(dlqTopic, {
               originalTopic: topic,
@@ -55,6 +60,9 @@ export function consume<T extends Record<string, unknown>>(
               payload,
               error: err instanceof Error ? err.message : String(err),
               failedAt: new Date().toISOString(),
+              serviceName,
+              retryCount,
+              cid,
             });
           }
         },
