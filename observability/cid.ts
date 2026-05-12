@@ -11,3 +11,7 @@ export function nextCid(cid: string): string {
   const counter = Number(cid.slice(sep + 1));
   return `${base}:${counter + 1}`;
 }
+
+export function harkonnenCid(cid: string): string {
+  return `${cid}:${randomUUID().split('-')[0]}:0`;
+}

@@ -1,2 +1,2 @@
 export { logger } from './logger';
-export { newCid, nextCid } from './cid';
+export { newCid, nextCid, harkonnenCid } from './cid';
