@@ -3,6 +3,7 @@ import { getKafkaTopic } from '../config';
 import { nextCid } from '@enxoval/observability';
 import { kafka } from '../kafka';
 import { publishRaw } from '../producer/index';
+import { registeredTopics, storeTopicContract, type TopicContractSide } from '../registry';
 
 export type MessageHandler<T = unknown> = (message: T) => Promise<void> | void;
 
@@ -22,11 +23,25 @@ async function withRetry(fn: () => Promise<void>, attemptsLeft: number, delayMs:
   }
 }
 
+/**
+ * Registra um consumer Kafka para o tópico identificado por `name`.
+ * @param name - Chave do tópico (ex: 'journeyInitiated')
+ * @param handler - Função chamada para cada mensagem recebida
+ * @param contract - Schema opcional do contrato wire (para introspection via GET /topics)
+ */
 export function consume<T extends Record<string, unknown>>(
   name: string,
   handler: MessageHandler<T>,
+  contract?: TopicContractSide,
 ): void {
   const topic = getKafkaTopic(name);
+  registeredTopics.push({
+    topicKey: name,
+    topic,
+    direction: 'consumer',
+    contract: storeTopicContract(contract ?? null),
+  });
+
   const serviceName = process.env.SERVICE_NAME || name;
   const dlqTopic = `${serviceName}-dlq`;
   const consumer = kafka.consumer({ groupId: `${serviceName}-${name}` });
