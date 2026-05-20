@@ -12,6 +12,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -21,11 +22,12 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "kafkajs": "^2.2.4",
     "@enxoval/observability": "^1.0.0",
-    "@enxoval/types": "^1.0.25"
+    "@enxoval/types": "^1.0.25",
+    "kafkajs": "^2.2.4"
   },
   "devDependencies": {
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.7"
   }
 }
