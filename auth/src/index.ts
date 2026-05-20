@@ -28,7 +28,7 @@ export function setupAuth(options?: { exclude?: string[] }): void {
   const excluded = options?.exclude ?? [];
 
   addPreHandler((request, _reply, done) => {
-    if (excluded.includes(request.url)) {
+    if (excluded.some(e => request.url === e || request.url.startsWith(e + '/'))) {
       store.enterWith(null);
       done();
       return;
