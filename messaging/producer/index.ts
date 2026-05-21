@@ -2,6 +2,7 @@ import { logger } from '@enxoval/observability';
 import { getKafkaTopic } from '../config';
 import { nextCid } from '@enxoval/observability';
 import { kafka } from '../kafka';
+import { registeredTopics, storeTopicContract, type TopicContractSide } from '../registry';
 
 const producer = kafka.producer();
 
@@ -32,5 +33,14 @@ export async function publishRaw(topic: string, message: unknown): Promise<void>
   await producer.send({
     topic,
     messages: [{ value: JSON.stringify(message) }],
+  });
+}
+
+export function registerProducer(name: string, contract: TopicContractSide): void {
+  registeredTopics.push({
+    topicKey: name,
+    topic: getKafkaTopic(name),
+    direction: 'producer',
+    contract: storeTopicContract(contract),
   });
 }
