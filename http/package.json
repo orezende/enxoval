@@ -1,6 +1,6 @@
 {
   "name": "@enxoval/http",
-  "version": "1.0.30",
+  "version": "1.0.31",
   "description": "Fastify wrapper exposing get, post, html, listen and inject helpers",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,6 +22,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@enxoval/messaging": "^1.0.7",
     "@enxoval/observability": "^1.0.0",
     "@enxoval/types": "^1.0.6",
     "@fastify/cors": "^11.2.0",

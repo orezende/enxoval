@@ -8,6 +8,14 @@
 import { describe, it, expect } from 'vitest';
 import { createSchema, field } from '@enxoval/types';
 import { get, post, del, sseRoute, inject } from './index';
+import { registeredTopics } from '@enxoval/messaging';
+
+registeredTopics.push({
+  topicKey: 'http-test-topic',
+  topic: 'enxoval.http-test-topic',
+  direction: 'producer' as const,
+  contract: { name: 'TestTopicSchema', fields: { id: { type: 'uuid' } } },
+});
 
 const TestIn  = createSchema({ id: field.uuid() });
 const TestOut = createSchema({ ok: field.boolean() });
@@ -55,5 +63,33 @@ describe('GET /routes', () => {
     const paths = (JSON.parse(res.body) as { path: string }[]).map(r => r.path);
     expect(paths).not.toContain('/contracts');
     expect(paths).not.toContain('/routes');
+  });
+});
+
+describe('GET /topics', () => {
+  it('retorna 200 com array de tópicos registrados', async () => {
+    const res = await inject({ method: 'GET', url: '/topics' });
+    expect(res.statusCode).toBe(200);
+    const topics = JSON.parse(res.body) as unknown[];
+    expect(Array.isArray(topics)).toBe(true);
+  });
+
+  it('inclui tópico registrado via push direto com contract', async () => {
+    const res = await inject({ method: 'GET', url: '/topics' });
+    const topics = JSON.parse(res.body) as {
+      topicKey: string;
+      direction: string;
+      contract: { name: string; fields: Record<string, unknown> } | null;
+    }[];
+    const t = topics.find((t) => t.topicKey === 'http-test-topic');
+    expect(t?.direction).toBe('producer');
+    expect(t?.contract?.name).toBe('TestTopicSchema');
+    expect(t?.contract?.fields).toEqual({ id: { type: 'uuid' } });
+  });
+
+  it('não inclui /topics nas rotas registradas via GET /routes', async () => {
+    const res = await inject({ method: 'GET', url: '/routes' });
+    const paths = (JSON.parse(res.body) as { path: string }[]).map((r) => r.path);
+    expect(paths).not.toContain('/topics');
   });
 });

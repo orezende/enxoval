@@ -19,6 +19,7 @@ import { logger } from '@enxoval/observability';
 import { AppError } from '@enxoval/types';
 import type { FieldDescriptor } from '@enxoval/types';
 import { newCid, nextCid } from '@enxoval/observability';
+import { registeredTopics } from '@enxoval/messaging';
 
 const app = Fastify({ logger: false });
 
@@ -28,7 +29,7 @@ app.decorateRequest('cid', '');
 app.decorateRequest('startTime', 0);
 
 /** Paths that are suppressed from request/response logs. */
-const SILENT_PATHS = new Set(['/routes']);
+const SILENT_PATHS = new Set(['/routes', '/topics']);
 
 // ─── Contract types ───────────────────────────────────────────────────────────
 
@@ -272,6 +273,9 @@ export function sseRoute<TParams, TQuery = Record<string, string>>(
 
 /** Returns all routes registered via the exported helpers. Internal routes are excluded. */
 app.get('/routes', async () => registeredRoutes);
+
+/** Returns all topics registered via consume() and registerProducer(). Internal route — excluded from registry. */
+app.get('/topics', async () => registeredTopics);
 
 // ─── Server lifecycle ─────────────────────────────────────────────────────────
 
