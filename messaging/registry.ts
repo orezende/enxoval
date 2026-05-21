@@ -10,7 +10,7 @@
 import type { FieldDescriptor } from '@enxoval/types';
 
 /** Schema-like: qualquer objeto com describe() que retorna FieldDescriptor map. */
-export type SchemaLike = { describe(): Record<string, FieldDescriptor> };
+export type SchemaLike = { describe?(): Record<string, FieldDescriptor> };
 
 /** Um lado do contrato de tópico: schema + nome descritivo. Null = sem schema. */
 export type TopicContractSide = { schema: SchemaLike; name: string } | null;
@@ -39,5 +39,5 @@ export const registeredTopics: TopicEntry[] = [];
  */
 export function storeTopicContract(side: TopicContractSide): TopicContractStored {
   if (!side) return null;
-  return { name: side.name, fields: side.schema.describe() };
+  return { name: side.name, fields: side.schema.describe?.() ?? {} };
 }
